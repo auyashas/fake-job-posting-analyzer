@@ -130,10 +130,24 @@ if submitted:
             "combined_text": combined_text
         }])
 
+        
         try:
             prediction = int(model.predict(input_data)[0])
 
+            # Get the model's estimated probability of fraud
+            fraud_probability = float(
+                model.predict_proba(input_data)[0][1]
+            )
+
             st.subheader("Prediction Result")
+
+            # Display estimated fraud probability
+            st.metric(
+                label="Estimated Fraud Probability",
+                value=f"{fraud_probability:.1%}"
+            )
+
+            st.progress(fraud_probability)
 
             if prediction == 1:
                 st.error("⚠️ Potentially Fraudulent Job Posting")
@@ -149,6 +163,10 @@ if submitted:
                     "This does not guarantee that the job offer is genuine."
                 )
 
+            st.caption(
+                "The probability is a model estimate, not a guarantee. "
+                "It may not be perfectly calibrated to real-world fraud risk."
+            )
+
         except Exception as e:
             st.error(f"Unable to analyze this posting: {e}")
-
