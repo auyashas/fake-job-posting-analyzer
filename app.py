@@ -98,48 +98,57 @@ with st.form("job_posting_form"):
     )
 
 if submitted:
-    # Combine text fields in the same order used during training
-    combined_text = " ".join([
-        title,
-        company_profile,
-        description,
-        requirements,
-        benefits
-    ])
+    # Validate required fields before prediction
+    if not title.strip() or not description.strip():
+        st.warning(
+            "Please enter both the Job Title and Job Description "
+            "before analyzing the posting."
+        )
+    else:
+        # Combine text fields in the same order used during training
+        combined_text = " ".join([
+            title,
+            company_profile,
+            description,
+            requirements,
+            benefits
+        ])
 
-    # Match the feature names and order used during training
-    input_data = pd.DataFrame([{
-        "location": location or None,
-        "department": department or None,
-        "salary_range": salary_range or None,
-        "telecommuting": 1 if telecommuting == "Yes" else 0,
-        "has_company_logo": 1 if has_company_logo == "Yes" else 0,
-        "has_questions": 1 if has_questions == "Yes" else 0,
-        "employment_type": employment_type or None,
-        "required_experience": required_experience or None,
-        "required_education": required_education or None,
-        "industry": industry or None,
-        "function": function or None,
-        "combined_text": combined_text
-    }])
+        # Match the features used during model training
+        input_data = pd.DataFrame([{
+            "location": location or None,
+            "department": department or None,
+            "salary_range": salary_range or None,
+            "telecommuting": 1 if telecommuting == "Yes" else 0,
+            "has_company_logo": 1 if has_company_logo == "Yes" else 0,
+            "has_questions": 1 if has_questions == "Yes" else 0,
+            "employment_type": employment_type or None,
+            "required_experience": required_experience or None,
+            "required_education": required_education or None,
+            "industry": industry or None,
+            "function": function or None,
+            "combined_text": combined_text
+        }])
 
-    try:
-        prediction = int(model.predict(input_data)[0])
+        try:
+            prediction = int(model.predict(input_data)[0])
 
-        st.subheader("Prediction Result")
+            st.subheader("Prediction Result")
 
-        if prediction == 1:
-            st.error("⚠️ Potentially Fraudulent Job Posting")
-            st.write(
-                "The model classified this posting as potentially fraudulent. "
-                "Verify the employer and job details before proceeding."
-            )
-        else:
-            st.success("✅ Likely Legitimate Job Posting")
-            st.write(
-                "The model classified this posting as legitimate. "
-                "This does not guarantee that the job offer is genuine."
-            )
+            if prediction == 1:
+                st.error("⚠️ Potentially Fraudulent Job Posting")
+                st.write(
+                    "The model classified this posting as potentially "
+                    "fraudulent. Verify the employer and job details "
+                    "before proceeding."
+                )
+            else:
+                st.success("✅ Likely Legitimate Job Posting")
+                st.write(
+                    "The model classified this posting as legitimate. "
+                    "This does not guarantee that the job offer is genuine."
+                )
 
-    except Exception as e:
-        st.error(f"Unable to analyze this posting: {e}")
+        except Exception as e:
+            st.error(f"Unable to analyze this posting: {e}")
+
